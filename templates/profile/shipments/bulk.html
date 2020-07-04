@@ -1,0 +1,201 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6  offset-md-3 mt-3 login-form-1">
+            <div class="text-center"> 
+                <h3> &nbsp; Bulk Add Shipments &nbsp;   <i class="fa fa-gift mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> </h3>
+                
+            </div>
+            <form action="/ropt/user/shipments/bulk/" method="post" id="file-upload-form" enctype="multipart/form-data"> 
+            {% csrf_token %}
+                <br/>
+                <div class="form-group">
+                    <label>Select File</label><br/>
+                    <input type="file" name="bulk" maxlength="254" required="" id="id_bulk"  style="padding: 10px; height: 50px;" class="col-9 pull-left file-input form-control">
+                    <a href="#"  class="btn  col-2 pull-right btn-fill btn-wd btn-primary add-driver " style="height: 48px; line-height: 35px;"> Go!</a>
+                    <br/><br/>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script   type="text/javascript"  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmyfpG7qTrGjmxnbEzY4MYD_NInKdh_IA&libraries=visualization"></script>
+
+<script> 
+function is_email(email){      
+var emailReg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+return emailReg.test(email); } 
+
+function isDoubleClicked(element) {
+  //if already clicked return TRUE to indicate this click is not allowed
+  if (element.data("isclicked")) return true;
+
+  //mark as clicked for 1 second
+  element.data("isclicked", true);
+  setTimeout(function () {
+      element.removeData("isclicked");
+  }, 1000);
+
+  //return FALSE to indicate this click was allowed
+  return false;
+}
+
+$(document).on('click','.add-driver',function(e){
+    e.preventDefault();
+    e.preventDefault()
+    e.stopPropagation();
+    if (isDoubleClicked($(this))) return;
+    can_continue = true 
+
+
+    this_button = $(this)
+    this_button.removeClass('update-profile')
+    this_button.html('Wait <i class="fa fa-spinner fa-spin"></i>')
+    this_button.removeClass('btn-primary')
+    this_button.addClass('btn-warning')
+    $('.success-part').addClass('hidden')
+    $('.error-part').addClass('hidden')
+    
+    var data = new FormData($('form').get(0));
+    
+    $.ajax({
+        url: "/ropt/user/shipments/bulk/",
+        type: "POST",
+        data: data,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Update')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').addClass('hidden')
+                    $('.success-part').removeClass('hidden')
+
+                    $('.success-message').html('You are all up to date now 🥳')
+                    window.location.replace("/ropt/user/shipments/list/");
+            }
+            else
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+                    return false 
+        },
+    })
+
+
+    
+
+    
+return false
+})
+
+ 
+
+
+
+
+
+var kuwait = new google.maps.LatLng({{cities.all.3.lat}},{{cities.all.3.lng}});
+
+map = new google.maps.Map(document.getElementById('map'), {
+  center: kuwait,
+  zoom: 11,
+  mapTypeId: 'terrain',
+  disableDefaultUI: true,
+    zoomControl: true,
+  mapTypeControl: false,
+  scaleControl: true,
+  streetViewControl: false,
+  rotateControl: true,
+  fullscreenControl: true
+
+
+});
+
+var this_branch = kuwait
+
+var myMarker = new google.maps.Marker({
+    position: this_branch,
+    draggable: true,
+});
+
+google.maps.event.addListener(myMarker, 'dragend', function(evt){
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+});
+
+google.maps.event.addListener(myMarker, 'dragstart', function(evt){
+});
+
+google.maps.event.addListener(map, 'click', function(evt) {
+            myMarker.setPosition(evt.latLng);
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+        });
+
+
+myMarker.setMap(map);
+
+
+
+
+
+</script>
+{% endblock %}

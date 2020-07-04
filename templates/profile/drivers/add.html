@@ -1,0 +1,335 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6  offset-md-3 mt-3 login-form-1">
+            <div class="text-center"> 
+                <h3> &nbsp; Add Driver &nbsp;   <i class="fa fa-car mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> <sup style="font-size: 6px!important; position: relative; right: -2px; top: -20px; color: #0099cc">vroom!</sup></h3>
+                
+            </div>
+
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" autofocus="" maxlength="254" required="" id="id_name"  class="form-control input-no-border">
+
+                </div>
+                <div class="form-group">
+                    <label>Email Login</label>
+                    <input type="email" name="username" autofocus="" maxlength="254" required="" id="id_username"  class="form-control input-no-border">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required="" id="id_password" class="form-control input-no-border">
+                </div>
+
+
+                <div class="form-group pull">
+                 <label for="exampleFormControlSelect1">Drop a location</label>
+                    <select class="form-control" name="city_select" id="id_city_select" >
+                        <option value="">----</option>
+                        {% for city in cities %}
+                            <option value="{{city.id}}">{{city.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="form-group pull">
+                    <label for="latlng">Pick a city</label>
+                    <div id="map" class="clearfix" style="width: 100%; margin: 30px auto; margin-top: 10px;height: 300px;">Map here</div>
+                    <input type="text" name="lat" autofocus="" maxlength="254" required="" id="id_lat" name="lat" class="form-control input-no-border hidden" hidden>
+                    <input type="text" name="lng" autofocus="" maxlength="254" required="" id="id_lng" name="lng"  class="form-control input-no-border hidden" hidden>
+
+                </div>
+
+
+
+                <div class="form-group ">
+                    <a href="#"  class="btn btn-fill btn-wd btn-primary add-driver ">Go!</a>
+                </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script   type="text/javascript"  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmyfpG7qTrGjmxnbEzY4MYD_NInKdh_IA&libraries=visualization"></script>
+
+<script> 
+function is_email(email){      
+var emailReg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+return emailReg.test(email); } 
+
+function isDoubleClicked(element) {
+  //if already clicked return TRUE to indicate this click is not allowed
+  if (element.data("isclicked")) return true;
+
+  //mark as clicked for 1 second
+  element.data("isclicked", true);
+  setTimeout(function () {
+      element.removeData("isclicked");
+  }, 1000);
+
+  //return FALSE to indicate this click was allowed
+  return false;
+}
+
+$(document).on('click','.add-driver',function(e){
+    e.preventDefault();
+    e.preventDefault()
+    e.stopPropagation();
+    if (isDoubleClicked($(this))) return;
+    can_continue = true 
+
+    this_button = $(this)
+    this_button.removeClass('update-profile')
+    this_button.html('Wait <i class="fa fa-spinner fa-spin"></i>')
+    this_button.removeClass('btn-primary')
+    this_button.addClass('btn-warning')
+    $('.success-part').addClass('hidden')
+    $('.error-part').addClass('hidden')
+    
+
+    
+
+    driver_name = $('#id_name').val()
+    if(!(driver_name) || driver_name == '')
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please enter a driver name 🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+
+    }
+
+    username = $('#id_username').val()
+    if(!(username) || username == '' || !is_email(username))
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please enter a login email that is correct  🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+
+    }
+
+
+    lat = $('#id_lat').val()
+    lng = $('#id_lng').val()
+
+    
+    if(!(lat) || !(lng) || lat == '' || lng == '')
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please drop the pin somewhere 🗺️')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+
+    }
+
+
+
+
+    city = $('#id_city_select').val()
+    if(city == '' || !city)
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please pick a city  🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+    }
+
+
+
+    password = $('#id_password').val()
+    if(password == '' || !password)
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please enter a password  🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+
+    }
+
+
+
+
+
+    if(can_continue)
+    {
+
+    
+        
+        $.ajax({
+        url: "/ropt/user/drivers/add/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            username: username,
+            driver_name:driver_name,
+            lat: lat, 
+            lng: lng,
+            city: city,
+            password: password
+            
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Update')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').addClass('hidden')
+                    $('.success-part').removeClass('hidden')
+
+                    $('.success-message').html('You are all up to date now 🥳')
+                    window.location.replace("/ropt/user/drivers/list/");
+
+            }
+            else
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+                    return false 
+        },
+    })
+
+    }
+
+    
+
+    
+return false
+})
+
+ 
+
+
+
+
+
+var kuwait = new google.maps.LatLng({{cities.all.3.lat}},{{cities.all.3.lng}});
+
+map = new google.maps.Map(document.getElementById('map'), {
+  center: kuwait,
+  zoom: 11,
+  mapTypeId: 'terrain',
+  disableDefaultUI: true,
+    zoomControl: true,
+  mapTypeControl: false,
+  scaleControl: true,
+  streetViewControl: false,
+  rotateControl: true,
+  fullscreenControl: true
+
+
+});
+
+var this_branch = kuwait
+
+var myMarker = new google.maps.Marker({
+    position: this_branch,
+    draggable: true,
+});
+
+google.maps.event.addListener(myMarker, 'dragend', function(evt){
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+});
+
+google.maps.event.addListener(myMarker, 'dragstart', function(evt){
+});
+
+google.maps.event.addListener(map, 'click', function(evt) {
+            myMarker.setPosition(evt.latLng);
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+        });
+
+
+myMarker.setMap(map);
+
+
+
+
+
+</script>
+{% endblock %}

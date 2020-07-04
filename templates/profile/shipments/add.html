@@ -1,0 +1,286 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6  offset-md-3 mt-3 login-form-1">
+            <div class="text-center"> 
+                <h3> &nbsp; Add Shipment &nbsp;   <i class="fa fa-gift mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> </h3>
+                
+            </div>
+
+
+
+                <div class="form-group pull">
+                 <label for="exampleFormControlSelect1">Pick a City</label>
+                    <select class="form-control" name="city_select" id="id_city_select" >
+                        <option value="">----</option>
+                        {% for city in cities %}
+                            <option value="{{city.id}}">{{city.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+            
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea type="text" name="address" autofocus="" maxlength="254" required="" id="id_address"  class="form-control input-no-border"></textarea>
+                </div>
+              
+
+                <div class="form-group pull">
+                    <label for="latlng">Drop a pin</label>
+                    <div id="map" class="clearfix" style="width: 100%; margin: 30px auto; margin-top: 10px;height: 300px;">Map here</div>
+                    <input type="text" name="lat" autofocus="" maxlength="254" required="" id="id_lat" name="lat" class="form-control input-no-border hidden" hidden>
+                    <input type="text" name="lng" autofocus="" maxlength="254" required="" id="id_lng" name="lng"  class="form-control input-no-border hidden" hidden>
+
+                </div>
+
+
+
+                <div class="form-group ">
+                    <a href="#"  class="btn btn-fill btn-wd btn-primary add-shipment ">Ship it!</a>
+                </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script   type="text/javascript"  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmyfpG7qTrGjmxnbEzY4MYD_NInKdh_IA&libraries=visualization"></script>
+
+<script> 
+
+function isDoubleClicked(element) {
+  //if already clicked return TRUE to indicate this click is not allowed
+  if (element.data("isclicked")) return true;
+
+  //mark as clicked for 1 second
+  element.data("isclicked", true);
+  setTimeout(function () {
+      element.removeData("isclicked");
+  }, 1000);
+
+  //return FALSE to indicate this click was allowed
+  return false;
+}
+
+$(document).on('click','.add-shipment',function(e){
+    e.preventDefault();
+    e.preventDefault()
+    e.stopPropagation();
+    if (isDoubleClicked($(this))) return;
+    can_continue = true 
+
+    this_button = $(this)
+    this_button.removeClass('add-shipment')
+    this_button.html('Wait <i class="fa fa-spinner fa-spin"></i>')
+    this_button.removeClass('btn-primary')
+    this_button.addClass('btn-warning')
+    $('.success-part').addClass('hidden')
+    $('.error-part').addClass('hidden')
+    
+
+    
+
+    address = $('#id_address').val()
+    if(!(address) || address == '')
+    {
+        this_button.addClass('add-shipment')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please enter an address  🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+    }
+
+
+    lat = $('#id_lat').val()
+    lng = $('#id_lng').val()
+    if(!(lat) || !(lng) || lat == '' || lng == '')
+    {
+        this_button.addClass('add-shipment')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please drop the pin somewhere 🗺️')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+
+    }
+
+
+    city = $('#id_city_select').val()
+    if(city == '' || !city)
+    {
+        this_button.addClass('add-hipment')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please pick a city  🥺')
+        $(window).scrollTop(0); 
+        can_continue = false
+        return false
+    }
+
+
+
+
+
+    if(can_continue)
+    {
+
+    
+        
+        $.ajax({
+        url: "/ropt/user/shipments/add/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            
+            address:address,
+            lat: lat, 
+            lng: lng,
+            city: city,
+            
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.addClass('add-shipment')
+                    this_button.html('Update')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').addClass('hidden')
+                    $('.success-part').removeClass('hidden')
+
+                    $('.success-message').html('You are all up to date now 🥳')
+                    window.location.replace("/ropt/user/shipments/list/");
+
+            }
+            else
+            {
+                    this_button.addClass('add-shipment')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('add-shipment')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('add-shipment')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+                    return false 
+        },
+    })
+
+    }
+
+    
+
+    
+return false
+})
+
+ 
+
+
+
+
+
+var kuwait = new google.maps.LatLng({{cities.all.3.lat}},{{cities.all.3.lng}});
+
+map = new google.maps.Map(document.getElementById('map'), {
+  center: kuwait,
+  zoom: 11,
+  mapTypeId: 'terrain',
+  disableDefaultUI: true,
+    zoomControl: true,
+  mapTypeControl: false,
+  scaleControl: true,
+  streetViewControl: false,
+  rotateControl: true,
+  fullscreenControl: true
+
+
+});
+
+var this_branch = kuwait
+
+var myMarker = new google.maps.Marker({
+    position: this_branch,
+    draggable: true,
+});
+
+google.maps.event.addListener(myMarker, 'dragend', function(evt){
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+});
+
+google.maps.event.addListener(myMarker, 'dragstart', function(evt){
+});
+
+google.maps.event.addListener(map, 'click', function(evt) {
+            myMarker.setPosition(evt.latLng);
+     document.getElementById('id_lat').value = evt.latLng.lat().toFixed(3)
+     document.getElementById('id_lng').value = evt.latLng.lng().toFixed(3)
+        });
+
+
+myMarker.setMap(map);
+
+
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10 offset-md-1 mt-3 ">
+            <div class="text-center"> 
+                <h3> &nbsp; Assigned for {{driver.user.profile.name}} &nbsp;   <i class="fa fa-location-arrow mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> <sup style="font-size: 6px!important; position: relative; right: 0px; top: 0px; color: #0099cc">you are here</sup></h3>
+                
+            </div>
+            
+
+            <table id="drivers" class="table  table-responsive  table-striped table-bordered" >
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Stop #</th>
+
+                <th>Start Location</th>
+                <th>End Location</th>
+                <th>Distance (km)</th>
+
+                <th>Time Start</th>
+                <th>ETA (mins)</th>
+                <th>Shipment ID</th>
+                <th> City</th>
+                <th> Address</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for path in route %}
+            <tr>
+                <td class="text-center"><a href="#" style="width: 30px; height: 30px; line-height: 20px" class="btn btn-sm {% if path.0.is_complete %} btn-success  {% else %} btn-outline-secondary {% endif %} astatus" data-shipment="{{path.0.id}}">{% if path.0.is_complete %} <i class="fa fa-check "></i> {% else %} -  {% endif %}</a>   </td>
+                <td>{{forloop.counter}}</td>
+                <td>{{path.3.0}},{{path.3.1}}</td>
+                <td>{{path.0.lat}},{{path.0.lng}}</td>
+                <td>{{path.1|floatformat:"0" }}</td>
+                <td>{{path.4.hour}}:{{path.4.minute|stringformat:"02d"}}</td>               
+                <td>{{path.2}}</td>               
+                <td>{{path.0.id}}</td>               
+                <td>{{path.0.area.name}}</td>               
+                <td>{{path.0.address}}</td>               
+            </tr>
+          {% endfor %}
+        </tbody>
+       
+    </table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    $('#drivers').DataTable(
+        {responsive: true}
+
+
+    );
+} );
+
+$(document).on('click','.astatus',function(){
+    this_button = $(this)
+    shipment = this_button.data('shipment')
+    $.ajax({
+        url: "/ropt/user/shipments/complete/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            shipment: shipment,
+
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                if(response.status == true)
+                {
+                    this_button.removeClass('btn-outline-secondary')
+                    this_button.addClass('btn-success')
+                    this_button.html(' <i class="fa fa-check"></i>')
+                    return false 
+                }
+                else{
+                    this_button.addClass('btn-outline-secondary')
+                    this_button.removeClass('btn-success')
+                    this_button.html('-')
+                    return false
+                }
+                    
+
+            }
+            else
+            {
+                     this_button.addClass('btn-outline-secondary')
+                    this_button.removeClass('btn-success')
+                    this_button.html('-')
+                    return false 
+
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+                    return false 
+        },
+    })
+
+    
+
+})
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6  offset-md-3 mt-3 login-form-1">
+            <div class="text-center"> 
+                <h3> &nbsp; Edit Profile &nbsp;  <i class="fa fa-user mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> </h3>
+                
+            </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="username" autofocus="" maxlength="254" required="" id="id_username"  class="form-control input-no-border" value="{{request.user.profile.name}}">
+                </div>
+                <div class="form-group pull">
+                <label>Password</label>
+                  &nbsp;&nbsp;  <a href="/ropt/user/profile/reset-password">Reset Password</a>
+                    
+                </div>
+
+                <div class="form-group ">
+                    <a href="#"  class="btn btn-fill btn-wd btn-primary update-profile ">Update</a>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+{% block js %}
+<script> 
+
+function isDoubleClicked(element) {
+  //if already clicked return TRUE to indicate this click is not allowed
+  if (element.data("isclicked")) return true;
+
+  //mark as clicked for 1 second
+  element.data("isclicked", true);
+  setTimeout(function () {
+      element.removeData("isclicked");
+  }, 1000);
+
+  //return FALSE to indicate this click was allowed
+  return false;
+}
+
+$(document).on('click','.update-profile',function(e){
+    e.preventDefault();
+    e.preventDefault()
+    e.stopPropagation();
+    if (isDoubleClicked($(this))) return;
+
+
+    this_button = $(this)
+    this_button.removeClass('update-profile')
+    this_button.html('Wait <i class="fa fa-spinner fa-spin"></i>')
+    this_button.removeClass('btn-primary')
+    this_button.addClass('btn-warning')
+    $('.success-part').addClass('hidden')
+    $('.error-part').addClass('hidden')
+
+
+    username = $('#id_username').val()
+    if(!(username) || username == '')
+    {
+        this_button.addClass('update-profile')
+        this_button.html('Try again')   
+        this_button.addClass('btn-primary')
+        this_button.removeClass('btn-warning')
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please enter a name 🥺')
+        return false
+
+    }
+    
+
+    else
+    {
+        $.ajax({
+        url: "/ropt/user/profile/change-profile/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            username: username,
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Update')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').addClass('hidden')
+                    $('.success-part').removeClass('hidden')
+
+                    $('.success-message').html('You are all up to date now 🥳')
+            }
+            else
+            {
+                    this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+                    $('.error-message').html('Something went wrong, try again')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('update-profile')
+                    this_button.html('Try again')   
+                    this_button.addClass('btn-primary')
+                    this_button.removeClass('btn-warning')
+                    $('.error-part').removeClass('hidden')
+                    $('.success-part').addClass('hidden')
+
+                    $('.error-message').html('Something went wrong, try again')
+                    return false 
+        },
+    })
+
+    }
+
+    
+
+    
+return false
+})
+
+ 
+
+
+</script>
+{% endblock %}
+{% endblock %}

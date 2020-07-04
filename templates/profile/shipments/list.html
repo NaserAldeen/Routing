@@ -1,0 +1,71 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 offset-md-2 mt-3 login-form-1">
+            <div class="text-center"> 
+                <h3> &nbsp; Shipment List &nbsp;   <i class="fa fa-archive mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> <sup style="font-size: 20px!important; position: relative; right: -2px; top: -20px; color: #0099cc">😮</sup></h3>
+                
+
+
+            </div>
+            
+
+            <table id="shipments" class="table table-responsive table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Lat</th>
+                <th>Lng</th>
+                <th>Status</th>
+                <th>Assigned</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for shipment in shipments %}
+            <tr>
+                <td>{{shipment.id}}</td>
+                <td>{{shipment.address}}</td>
+                <td>{{shipment.area.name}}</td>
+                <td>{{shipment.lat}}</td>
+                <td>{{shipment.lng}}</td>
+                <td>{% if shipment.is_complete %} Done {% else %} - {% endif %} </td>
+                <td>{% if shipment.driver %} {{shipment.driver.user.profile}} {% else %} - {% endif %} </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+       
+    </table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    $('#shipments').DataTable();
+} );
+</script>
+{% endblock %}

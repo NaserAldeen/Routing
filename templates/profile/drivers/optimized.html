@@ -1,0 +1,250 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3 mt-5 error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 mt-5 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10 offset-md-1 mt-3 ">
+            <div class="text-center"> 
+                <h3> &nbsp; Optimized  &nbsp;   <i class="fa fa-bolt mb-2 mt-2" style="color: #CFCF00!important" aria-hidden="true"></i> <sup style="font-size: 20px!important; position: relative; right: 0px; top: 0px; color: #0099cc"><i class="fa fa-bolt"></i></sup><sub style="font-size: 6px; color: #000"> ززت</sub> </h3>
+                
+            </div>
+            
+            <a href="#" class="btn pull-right btn-sm btn-primary feeling-lucky">Feeling lucky?</a>
+            <table id="drivers" class="table table-responsive table-striped table-bordered nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Assign</th>
+                <th>Stop #</th>
+                <th>Driver</th>
+
+                <th>Start Location</th>
+                <th>End Location</th>
+                <th>Distance (km)</th>
+
+                <th>Time Start</th>
+                <th>ETA (mins)</th>
+                <th>Shipment ID</th>
+                <th> City</th>
+                <th> Address</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for path in route %}
+            <tr>
+                <td><a href="#" class="btn btn-sm {% if path.0.driver  == path.5  and path.0.driver %} btn-success assigned {% else %} btn-primary assign {% endif %}" data-driver="{{path.5.id}}"  data-shipment="{{path.0.id}}">{% if path.0.driver  == path.5  and path.0.driver %} Assigned {% else %} Assign {% endif %}</a></td>
+
+                <td>{{path.6}}</td>
+                <td>{{path.5}}</td>
+                <td>{{path.3.0}},{{path.3.1}}</td>
+                <td>{{path.0.lat}},{{path.0.lng}}</td>
+                <td>{{path.1|floatformat:"0" }}</td>
+                <td>{{path.4.hour}}:{{path.4.minute|stringformat:"02d"}}</td>               
+                <td>{{path.2}}</td>               
+                <td>{{path.0.id}}</td>               
+                <td>{{path.0.area.name}}</td>               
+                <td>{{path.0.address}}</td>               
+            </tr>
+          {% endfor %}
+        </tbody>
+       
+    </table>            
+    
+    <div class="text-center mt-3">
+    
+    <a href="#" class="btn btn-sm btn-success "  onclick="download_table_as_csv('drivers');"><i class="fa fa-save"></i>  &nbsp; Download</a>
+
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    $('#drivers').DataTable(
+        {responsive: true, paging:   false}
+
+
+    );
+} );
+
+
+$(document).on('click','.assigned',function(e){
+    e.preventDefault()
+    this_button = $(this) 
+    shipment = this_button.data('shipment')
+     $.ajax({
+        url: "/ropt/user/drivers/unassign/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            shipment: shipment,
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.removeClass('btn-success')
+                    this_button.html('Assign')   
+                    this_button.addClass('assign')   
+                    this_button.removeClass('assigned')
+                    this_button.addClass('btn-primary')
+                    return false
+            }
+            else
+            {
+                    this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false 
+        },
+    })
+
+
+
+})
+
+$(document).on('click','.feeling-lucky',function(e){
+    e.preventDefault()
+    
+    $( ".assign" ).each(function () {
+        $(this).trigger('click')
+        $(this).html('Assigned')
+        $(this).removeClass('btn-primary')
+        $(this).removeClass('assign')
+        $(this).addClass('btn-success')
+        $(this).addClass('assigned')
+    
+});
+
+})
+$(document).on('click','.assign',function(){
+this_button = $(this)
+
+driver = this_button.data('driver')
+shipment = this_button.data('shipment')
+
+
+
+        
+        $.ajax({
+        url: "/ropt/user/drivers/assign/",
+        type: "POST",
+        data: {
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+            shipment: shipment,
+            driver:driver,       
+        },
+        success: function(response) {
+            if(response.success)
+            {
+                    this_button.addClass('btn-success')
+                    this_button.html('Assigned')   
+                    this_button.removeClass('assign')   
+                    this_button.addClass('assigned')
+
+                    this_button.removeClass('btn-primary')
+                    return false
+            }
+            else
+            {
+                    this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false
+            }
+
+           
+        },
+        failure: function() {
+               this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false    
+        },
+        error: function(){
+               this_button.addClass('btn-warning')
+                    this_button.html('Try again')   
+                    this_button.removeClass('btn-primary')
+                    this_button.removeClass('btn-success')
+                    return false 
+        },
+    })
+
+
+})
+
+
+</script>
+
+<script>
+// Quick and simple export target #table_id into a csv
+function download_table_as_csv(table_id) {
+    // Select rows from table_id
+    var rows = document.querySelectorAll('table#' + table_id + ' tr');
+    // Construct csv
+    var csv = [];
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        for (var j = 0; j < cols.length; j++) {
+            // Clean innertext to remove multiple spaces and jumpline (break csv)
+            var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ')
+            // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
+            data = data.replace(/"/g, '""');
+            // Push escaped string
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(';'));
+    }
+    var csv_string = csv.join('\n');
+    // Download it
+    var filename = 'export_optimized_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
+    var link = document.createElement('a');
+    link.style.display = 'none';
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+</script>
+{% endblock %}

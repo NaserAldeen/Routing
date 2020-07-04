@@ -1,0 +1,209 @@
+{% extends '../../base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container login-container">
+    <div class="row">
+        <div class="col-md-6  offset-md-3  error-part hidden">
+            <div class="errors">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Oh no</strong> <span class="error-message">Try logging in again. </span>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-6  offset-md-3 success-part hidden">
+            <div class="errors">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fa fa-check" aria-hidden="true"></i>Yay!</strong> <span class="success-message">Saved</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10 offset-md-1 mt-3 ">
+            <div class="text-center"> 
+                <h3> &nbsp; Yalla Optimize  &nbsp; <i class="fa fa-bolt mb-2 mt-2" style="color: #999!important" aria-hidden="true"></i> <sup style="font-size: 20px!important; position: relative; right: 0px; top: 0px; color: #DDDD00"><i class="fa fa-bolt"></i></sup></h3>
+                
+            </div>
+            <h4>Choose Shipments</h4>
+            
+                <div style="border: 1px solid #ccc; padding: 10px; max-height: 200px; height: 200px; overflow: scroll;">
+                {% for shipment in shipments %} 
+                <div class="row mb-3 {% if shipment.driver %} assgined {% endif %}" style="min-width: 800px;">
+                    <div class="col-2"><a href="#" data-shipment="{{shipment.id}}" class="btn btn-sm btn-outline-secondary add-shipment"><i class="fa fa-minus"></i></a></div>
+                    <div class="col-2">{{shipment.id}}</div>
+                    <div class="col-2">{{shipment.id}}</div>
+                    <div class="col-3">{{shipment.area.name}}</div>
+                    <div class="col-3">{{shipment.address}}</div>
+                </div>
+                {% endfor %}
+                </div>
+
+                <br/><br/>
+                <h4>Choose Drivers</h4>
+                <div style="border: 1px solid #ccc; padding: 10px; max-height: 200px; height: 200px; overflow: scroll;">
+                    {% for driver in drivers %} 
+                    <div class="row mb-3" style="min-width: 800px;">
+                        <div class="col-2"><a href="#" data-driver="{{driver.id}}" class="btn btn-sm btn-outline-secondary add-driver"><i class="fa fa-minus"></i></a></div>
+                        <div class="col-2">{{driver.id}}</div>
+                        <div class="col-2">{{driver.user.profile.name}}</div>
+                        <div class="col-4">{{driver.user}}</div>
+                        <div class="col-2">{{driver.area}}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+
+                <div class="row mt-3">
+                    <div class="hidden">
+                        <form action="/ropt/user/drivers/optimize/" method="post" id="optimize_form" enctype="multipart/form-data"> 
+                            {% csrf_token %}
+                            <input type="text" name="shipments_chosen" autofocus="" maxlength="254" required="" id="id_shipments_chosen" name="lat" class="form-control input-no-border hidden" hidden>
+                            <input type="text" name="drivers_chosen" autofocus="" maxlength="254" required="" id="id_drivers_chosen" name="lng"  class="form-control input-no-border hidden" hidden>
+                        </form>
+                    </div>
+                    <div class="col-12"><a href="#" class="btn btn-primary optimize">Optimize</a></div>
+                </div>
+
+        </div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
+
+function isDoubleClicked(element) {
+  //if already clicked return TRUE to indicate this click is not allowed
+  if (element.data("isclicked")) return true;
+
+  //mark as clicked for 1 second
+  element.data("isclicked", true);
+  setTimeout(function () {
+      element.removeData("isclicked");
+  }, 1000);
+
+  //return FALSE to indicate this click was allowed
+  return false;
+}
+
+shipments_chosen = []
+drivers_chosen = []
+$(document).on('click','.add-shipment',function()
+{
+    this_button = $(this)
+        this_button.html('<i class="fa fa-check"></i>')
+
+    this_shipment = this_button.data('shipment')
+    this_button.addClass('btn-success')
+    this_button.addClass('remove-shipment')
+    this_button.removeClass('btn-outlined-secondary')
+    this_button.removeClass('add-shipment')
+    shipments_chosen.push(this_shipment)
+    console.log(shipments_chosen)
+})
+
+$(document).on('click','.remove-shipment',function(e)
+{
+
+    e.preventDefault()
+    e.stopPropagation();
+
+
+
+
+    this_button = $(this)
+            this_button.html('<i class="fa fa-minus"></i>')
+
+    this_shipment = this_button.data('shipment')
+    this_button.addClass('btn-outlined-secondary')
+    this_button.addClass('add-shipment')
+    this_button.removeClass('btn-success')
+    this_button.removeClass('remove-shipment')
+    shipments_chosen.remove(this_shipment)
+    console.log(shipments_chosen)
+
+})
+
+
+$(document).on('click','.add-driver',function(e)
+{
+
+    
+
+
+e.preventDefault();
+    this_button = $(this)
+    
+        this_button.html('<i class="fa fa-check"></i>')
+
+    this_driver = this_button.data('driver')
+    this_button.addClass('btn-success')
+    this_button.addClass('remove-driver')
+    this_button.removeClass('btn-outlined-secondary')
+    this_button.removeClass('add-driver')
+    drivers_chosen.push(this_driver)
+    console.log(drivers_chosen)
+})
+
+$(document).on('click','.remove-driver',function(e)
+{
+
+    e.preventDefault()
+    e.stopPropagation();
+     this_button = $(this)
+    this_button.html('<i class="fa fa-minus"></i>')
+
+    this_driver = this_button.data('driver')
+    this_button.addClass('btn-outlined-secondary')
+    this_button.addClass('add-driver')
+    this_button.removeClass('btn-success')
+    this_button.removeClass('remove-driver')
+    drivers_chosen.remove(this_driver)
+    console.log(drivers_chosen)
+
+})
+
+$(document).on('click','.optimize',function(e){
+    e.preventDefault()
+    if(shipments_chosen.length < 1)
+    {
+       
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please choose shipments 🎁')
+
+    }
+    else if(drivers_chosen.length < 1)
+    {
+       
+        $('.error-part').removeClass('hidden')
+        $('.success-part').addClass('hidden')
+        $('.error-message').html('Please choose drivers 🚚 ')
+
+    }
+    else{
+        $('#id_shipments_chosen').val(shipments_chosen.join(","))
+        $('#id_drivers_chosen').val(drivers_chosen.join(","))
+        $('#optimize_form').submit()
+    }   
+
+
+})
+
+</script>
+{% endblock %}
